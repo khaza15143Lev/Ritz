@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rod BVP Solution using Ritz Method</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #4a5568;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .problem-description {
+            background: #f7fafc;
+            border-left: 4px solid #4299e1;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-radius: 8px;
+        }
+        
+        .parameters-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .parameter-group {
+            background: #edf2f7;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .parameter-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #2d3748;
+        }
+        
+        .parameter-group input {
+            width: 80px;
+            padding: 8px;
+            border: 2px solid #cbd5e0;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        .parameter-group input:focus {
+            outline: none;
+            border-color: #4299e1;
+        }
+        
+        .parameter-group small {
+            display: block;
+            margin-top: 5px;
+            color: #718096;
+            font-size: 12px;
+        }
+        
+        .controls {
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        button {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 16px;
+            border-radius: 25px;
+            cursor: pointer;
+            margin: 0 10px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .results-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 30px;
+        }
+        
+        .solution-box, .plot-box {
+            background: #f7fafc;
+            border-radius: 15px;
+            padding: 20px;
+            border: 2px solid #e2e8f0;
+        }
+        
+        .solution-box h3, .plot-box h3 {
+            color: #2d3748;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .coefficient {
+            background: white;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 18px;
+            text-align: center;
+            border: 1px solid #cbd5e0;
+        }
+        
+        canvas {
+            width: 100%;
+            height: 300px;
+            border-radius: 10px;
+            background: white;
+        }
+        
+        .formula {
+            background: #e6fffa;
+            border: 2px solid #38b2ac;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            text-align: center;
+            font-size: 16px;
+        }
+        
+        .method-explanation {
+            background: #fff5f5;
+            border-left: 4px solid #f56565;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        
+        .derivation-section {
+            background: #f0fff4;
+            border: 2px solid #38a169;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+        }
+        
+        .step-box {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid #4299e1;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .step-box h4 {
+            color: #2b6cb0;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+        
+        .math-content {
+            font-family: 'Courier New', monospace;
+            line-height: 1.6;
+        }
+        
+        .math-content p {
+            margin: 10px 0;
+        }
+        
+        .math-content strong {
+            color: #2d3748;
+            background: #edf2f7;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        
+        .integral-result {
+            background: #e6fffa;
+            border: 1px solid #38b2ac;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+        
+        .matrix-display {
+            background: #f7fafc;
+            border: 2px solid #cbd5e0;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            text-align: center;
+        }
+        
+        @media (max-width: 768px) {
+            .results-section {
+                grid-template-columns: 1fr;
+            }
+            
+            .parameters-section {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Rod BVP Solution using Ritz Method</h1>
+        
+        <div class="problem-description">
+            <h3>Problem Statement:</h3>
+            <p>A rod of length <strong>L</strong> is fixed at <strong>x = L</strong> and subjected to:</p>
+            <ul>
+                <li>Concentrated force <strong>P</strong> at <strong>x = 0</strong></li>
+                <li>Body force per unit volume <strong>q(x) = a·x²</strong></li>
+                <li>Force per unit length <strong>f(x) = A·q(x) = A·a·x²</strong></li>
+            </ul>
+            <p>Rod properties: Cross-sectional area <strong>A</strong>, Elastic modulus <strong>E</strong></p>
+        </div>
+        
+        <div class="parameters-section">
+            <div class="parameter-group">
+                <label for="L">Length L</label>
+                <input type="number" id="L" step="1" min="1" max="10">
+                <small>Integer: 1-10</small>
+            </div>
+            <div class="parameter-group">
+                <label for="E">Modulus E</label>
+                <input type="number" id="E" step="1" min="1" max="10">
+                <small>Integer: 1-10</small>
+            </div>
+            <div class="parameter-group">
+                <label for="A">Area A</label>
+                <input type="number" id="A" step="1" min="1" max="10">
+                <small>Integer: 1-10</small>
+            </div>
+            <div class="parameter-group">
+                <label for="P">Force P</label>
+                <input type="number" id="P" step="1" min="1" max="100">
+                <small>Integer: 1-100</small>
+            </div>
+            <div class="parameter-group">
+                <label for="a">Body Force Coeff. a</label>
+                <input type="number" id="a" step="0.1" min="0.1" max="2">
+                <small>q(x) = a·x² (0.1-2.0)</small>
+            </div>
+        </div>
+        
+        <div class="formula">
+            Assumed Solution: u(x) = c₁(x-L)² + c₂(x-L)^4
+        </div>
+        
+        <div class="controls">
+            <button onclick="generateRandomParameters()">🎲 Random Parameters</button>
+            <button onclick="solveRitzMethod()">🚀 Solve using Ritz Method</button>
+            <button onclick="toggleDerivation()">📖 Show/Hide Derivation Steps</button>
+        </div>
+        
+        <div class="method-explanation">
+            <h3>Ritz Method Approach:</h3>
+            <p>The Ritz method minimizes the total potential energy:</p>
+            <p><strong>Π = ½∫₀ᴸ EA(du/dx)²dx - ∫₀ᴸ f(x)u dx - P·u(0)</strong></p>
+            <p>where <strong>f(x) = A·q(x) = A·a·x²</strong> is the force per unit length</p>
+            <p>Setting ∂Π/∂cᵢ = 0 gives us the system of equations to solve for coefficients c₁ and c₂.</p>
+        </div>
+        
+        <div id="derivationSteps" style="display: none;">
+            <div class="derivation-section">
+                <h2>📚 Detailed Mathematical Derivation</h2>
+                
+                <div class="step-box">
+                    <h4>Step 1: Assumed Solution Form</h4>
+                    <div class="math-content">
+                        <p><strong>u(x) = c₁(x-L)² + c₂(x-L)^4</strong></p>
+                        <p>This form automatically satisfies the boundary condition u(L) = 0</p>
+                        <p>First derivative: <strong>du/dx = 2c₁(x-L) + 4c₂(x-L)³</strong></p>
+                    </div>
+                </div>
+                
+                <div class="step-box">
+                    <h4>Step 2: Total Potential Energy Expression</h4>
+                    <div class="math-content">
+                        <p><strong>Π = U - W</strong></p>
+                        <p>where:</p>
+                        <ul>
+                            <li>U = ½∫₀ᴸ EA(du/dx)² dx (strain energy)</li>
+                            <li>W = ∫₀ᴸ f(x)u dx + P·u(0) (work done by external forces)</li>
+                            <li>f(x) = A·q(x) = A·a·x² (force per unit length)</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="step-box">
+                    <h4>Step 3: Strain Energy Calculation</h4>
+                    <div class="math-content">
+                        <p><strong>U = ½EA∫₀ᴸ [2c₁(x-L) + 4c₂(x-L)³]² dx</strong></p>
+                        <p>Expanding: <strong>(du/dx)² = 4c₁²(x-L)² + 16c₁c₂(x-L)⁴ + 16c₂²(x-L)⁶</strong></p>
+                        <div id="strainEnergyDetails"></div>
+                    </div>
+                </div>
+                
+                <div class="step-box">
+                    <h4>Step 4: Work Done by External Forces</h4>
+                    <div class="math-content">
+                        <p><strong>W = ∫₀ᴸ f(x)[c₁(x-L)² + c₂(x-L)^4] dx + P[c₁(0-L)² + c₂(0-L)^4]</strong></p>
+                        <p>where <strong>f(x) = A·a·x²</strong></p>
+                        <p><strong>W = c₁∫₀ᴸ A·a·x²(x-L)² dx + c₂∫₀ᴸ A·a·x²(x-L)^4 dx + Pc₁L² + Pc₂L^4</strong></p>
+                        <div id="workDetails"></div>
+                    </div>
+                </div>
+                
+                <div class="step-box">
+                    <h4>Step 5: Stiffness Matrix Formation</h4>
+                    <div class="math-content">
+                        <p>From ∂Π/∂c₁ = 0 and ∂Π/∂c₂ = 0:</p>
+                        <div id="stiffnessMatrix"></div>
+                    </div>
+                </div>
+                
+                <div class="step-box">
+                    <h4>Step 6: System Solution</h4>
+                    <div class="math-content">
+                        <p>Solving the linear system [K]{c} = {F}:</p>
+                        <div id="systemSolution"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="results-section">
+            <div class="solution-box">
+                <h3>📊 Solution Coefficients</h3>
+                <div id="coefficients">
+                    <div class="coefficient">c₁ = Click solve to calculate</div>
+                    <div class="coefficient">c₂ = Click solve to calculate</div>
+                </div>
+                <div id="maxDisplacement" class="coefficient" style="margin-top: 20px; background: #e6fffa;">
+                    Max Displacement = -
+                </div>
+            </div>
+            
+            <div class="plot-box">
+                <h3>📈 Displacement Profile</h3>
+                <canvas id="displacementPlot" width="400" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Generate random parameters with specified ranges
+        function generateRandomParameters() {
+            // L, E, A: random integers between 1 and 10
+            document.getElementById('L').value = Math.floor(Math.random() * 10) + 1;
+            document.getElementById('E').value = Math.floor(Math.random() * 10) + 1;
+            document.getElementById('A').value = Math.floor(Math.random() * 10) + 1;
+            
+            // P: random integer between 1 and 100
+            document.getElementById('P').value = Math.floor(Math.random() * 100) + 1;
+            
+            // a: random number between 0.1 and 2 with one decimal place
+            document.getElementById('a').value = (Math.random() * 1.9 + 0.1).toFixed(1);
+        }
+        
+        // Initialize with random parameters
+        generateRandomParameters();
+        
+        function toggleDerivation() {
+            const derivationDiv = document.getElementById('derivationSteps');
+            if (derivationDiv.style.display === 'none') {
+                derivationDiv.style.display = 'block';
+            } else {
+                derivationDiv.style.display = 'none';
+            }
+        }
+        
+        function displayIntegralResults(L, E, A, P, a) {
+            const EA = E * A;
+            
+            // Strain energy integrals for u(x) = c₁(x-L)² + c₂(x-L)^4
+            // du/dx = 2c₁(x-L) + 4c₂(x-L)³
+            const I1 = (4 * Math.pow(L, 3)) / 3; // ∫₀ᴸ 4(x-L)² dx
+            const I2 = (16 * Math.pow(L, 5)) / 5; // ∫₀ᴸ 16(x-L)⁴ dx  
+            const I3 = (16 * Math.pow(L, 7)) / 7; // ∫₀ᴸ 16(x-L)⁶ dx
+            
+            // Work integrals (including cross-sectional area A)
+            const W1 = (A * a * Math.pow(L, 6)) / 15; // ∫₀ᴸ A*a*x²(x-L)² dx
+            const W2 = (A * a * Math.pow(L, 8)) / 35; // ∫₀ᴸ A*a*x²(x-L)^4 dx
+            
+            document.getElementById('strainEnergyDetails').innerHTML = `
+                <div class="integral-result">
+                    ∫₀ᴸ 4c₁²(x-L)² dx = 4c₁² × (L³/3) = ${(4 * Math.pow(L, 3) / 3).toFixed(4)}c₁²<br>
+                    ∫₀ᴸ 16c₁c₂(x-L)⁴ dx = 16c₁c₂ × (L⁵/5) = ${(16 * Math.pow(L, 5) / 5).toFixed(4)}c₁c₂<br>
+                    ∫₀ᴸ 16c₂²(x-L)⁶ dx = 16c₂² × (L⁷/7) = ${(16 * Math.pow(L, 7) / 7).toFixed(4)}c₂²<br><br>
+                    <strong>U = ½EA[${(4 * Math.pow(L, 3) / 3).toFixed(4)}c₁² + ${(16 * Math.pow(L, 5) / 5).toFixed(4)}c₁c₂ + ${(16 * Math.pow(L, 7) / 7).toFixed(4)}c₂²]</strong><br>
+                    <strong>U = ½(${E})(${A})[${(4 * Math.pow(L, 3) / 3).toFixed(4)}c₁² + ${(16 * Math.pow(L, 5) / 5).toFixed(4)}c₁c₂ + ${(16 * Math.pow(L, 7) / 7).toFixed(4)}c₂²]</strong><br>
+                    <strong>U = ${(EA * 2 * Math.pow(L, 3) / 3).toFixed(4)}c₁² + ${(EA * 8 * Math.pow(L, 5) / 5).toFixed(4)}c₁c₂ + ${(EA * 8 * Math.pow(L, 7) / 7).toFixed(4)}c₂²</strong>
+                </div>
+            `;
+            
+            document.getElementById('workDetails').innerHTML = `
+                <div class="integral-result">
+                    f(x) = A·a·x² = (${A})(${a})·x² = ${(A * a).toFixed(4)}x²<br><br>
+                    ∫₀ᴸ A·a·x²(x-L)² dx = A·a × (L⁶/15) = (${A})(${a}) × ${(Math.pow(L, 6)/15).toFixed(4)} = ${W1.toFixed(4)}<br>
+                    ∫₀ᴸ A·a·x²(x-L)^4 dx = A·a × (L⁸/35) = (${A})(${a}) × ${(Math.pow(L, 8)/35).toFixed(4)} = ${W2.toFixed(4)}<br>
+                    P × u(0) = P × [c₁L² + c₂L^4] = ${P} × [c₁(${L})² + c₂(${L})^4] = ${(P * Math.pow(L, 2)).toFixed(4)}c₁ + ${(P * Math.pow(L, 4)).toFixed(4)}c₂<br><br>
+                    <strong>W = ${W1.toFixed(4)}c₁ + ${W2.toFixed(4)}c₂ + ${(P * Math.pow(L, 2)).toFixed(4)}c₁ + ${(P * Math.pow(L, 4)).toFixed(4)}c₂</strong><br>
+                    <strong>W = ${(W1 + P * Math.pow(L, 2)).toFixed(4)}c₁ + ${(W2 + P * Math.pow(L, 4)).toFixed(4)}c₂</strong>
+                </div>
+            `;
+            
+            const K11 = EA * (4 * Math.pow(L, 3)) / 3;
+            const K12 = EA * (16 * Math.pow(L, 5)) / 5;
+            const K22 = EA * (16 * Math.pow(L, 7)) / 7;
+            
+            const F1 = W1 + P * Math.pow(L, 2);
+            const F2 = W2 + P * Math.pow(L, 4);
+            
+            document.getElementById('stiffnessMatrix').innerHTML = `
+                <div class="matrix-display">
+                    From ∂Π/∂c₁ = ∂U/∂c₁ - ∂W/∂c₁ = 0:<br>
+                    EA[${(4 * Math.pow(L, 3) / 3).toFixed(4)}c₁ + ${(8 * Math.pow(L, 5) / 5).toFixed(4)}c₂] = ${F1.toFixed(4)}<br><br>
+                    
+                    From ∂Π/∂c₂ = ∂U/∂c₂ - ∂W/∂c₂ = 0:<br>
+                    EA[${(8 * Math.pow(L, 5) / 5).toFixed(4)}c₁ + ${(16 * Math.pow(L, 7) / 7).toFixed(4)}c₂] = ${F2.toFixed(4)}<br><br>
+                    
+                    <strong>Stiffness Matrix [K]:</strong><br>
+                    [${K11.toExponential(3)}  ${K12.toExponential(3)}]<br>
+                    [${K12.toExponential(3)}  ${K22.toExponential(3)}]<br><br>
+                    
+                    <strong>Force Vector {F}:</strong><br>
+                    {${F1.toFixed(4)}}<br>
+                    {${F2.toFixed(4)}}
+                </div>
+            `;
+            
+            const det = K11 * K22 - K12 * K12;
+            const c1 = (F1 * K22 - F2 * K12) / det;
+            const c2 = (K11 * F2 - K12 * F1) / det;
+            
+            document.getElementById('systemSolution').innerHTML = `
+                <div class="matrix-display">
+                    <strong>Matrix Determinant:</strong> det = K₁₁K₂₂ - K₁₂² = ${det.toExponential(4)}<br><br>
+                    
+                    <strong>Solution using Cramer's rule:</strong><br>
+                    c₁ = (F₁K₂₂ - F₂K₁₂) / det = ${c1.toExponential(4)}<br>
+                    c₂ = (K₁₁F₂ - K₁₂F₁) / det = ${c2.toExponential(4)}<br><br>
+                    
+                    <strong>Final Solution:</strong><br>
+                    u(x) = ${c1.toExponential(4)}(x-L)² + ${c2.toExponential(4)}(x-L)^4
+                </div>
+            `;
+        }
+        
+        function solveRitzMethod() {
+            // Get parameters
+            const L = parseFloat(document.getElementById('L').value);
+            const E = parseFloat(document.getElementById('E').value);
+            const A = parseFloat(document.getElementById('A').value);
+            const P = parseFloat(document.getElementById('P').value);
+            const a = parseFloat(document.getElementById('a').value);
+            
+            if (!L || !E || !A) {
+                alert('Please ensure L, E, and A are positive values!');
+                return;
+            }
+            
+            const EA = E * A;
+            
+            // Ritz method implementation
+            // Assumed solution: u(x) = c1*(x-L)^2 + c2*(x-L)^4
+            // du/dx = c1*2*(x-L) + c2*4*(x-L)^3
+            
+            // Stiffness matrix elements
+            // K11 = ∫₀ᴸ EA [2(x-L)]² dx = 4*EA*L³/3
+            const K11 = (4 * EA * Math.pow(L, 3)) / 3;
+            
+            // K12 = K21 = ∫₀ᴸ EA [2(x-L)][4(x-L)³] dx = 8*EA*L⁵/5
+            const K12 = (8 * EA * Math.pow(L, 5)) / 5;
+            
+            // K22 = ∫₀ᴸ EA [4(x-L)³]² dx = 16*EA*L⁷/7
+            const K22 = (16 * EA * Math.pow(L, 7)) / 7;
+            
+            // Force vector elements
+            // F1 from body force: ∫₀ᴸ f(x)*(x-L)² dx = ∫₀ᴸ A*a*x²*(x-L)² dx
+            const F1_body = (A * a * Math.pow(L, 6)) / 15; // Analytical integration
+            
+            // F2 from body force: ∫₀ᴸ f(x)*(x-L)^4 dx = ∫₀ᴸ A*a*x²*(x-L)^4 dx  
+            const F2_body = (A * a * Math.pow(L, 8)) / 35; // Analytical integration
+            
+            // F1 from point load: P*u(0) = P*(0-L)² = P*L²
+            const F1_point = P * Math.pow(L, 2);
+            
+            // F2 from point load: P*u(0) = P*(0-L)^4 = P*L^4
+            const F2_point = P * Math.pow(L, 4);
+            
+            const F1 = F1_body + F1_point;
+            const F2 = F2_body + F2_point;
+            
+            // Solve 2x2 system: [K]{c} = {F}
+            const det = K11 * K22 - K12 * K12;
+            
+            if (Math.abs(det) < 1e-12) {
+                alert('Singular matrix! Cannot solve.');
+                return;
+            }
+            
+            const c1 = (F1 * K22 - F2 * K12) / det;
+            const c2 = (K11 * F2 - K12 * F1) / det;
+            
+            // Display results
+            document.getElementById('coefficients').innerHTML = `
+                <div class="coefficient">c₁ = ${c1.toExponential(4)}</div>
+                <div class="coefficient">c₂ = ${c2.toExponential(4)}</div>
+            `;
+            
+            // Display detailed derivation steps
+            displayIntegralResults(L, E, A, P, a);
+            
+            // Find maximum displacement
+            let maxDisp = 0;
+            let maxPos = 0;
+            for (let x = 0; x <= L; x += L/100) {
+                const u = c1 * Math.pow(x - L, 2) + c2 * Math.pow(x - L, 4);
+                if (Math.abs(u) > Math.abs(maxDisp)) {
+                    maxDisp = u;
+                    maxPos = x;
+                }
+            }
+            
+            document.getElementById('maxDisplacement').innerHTML = 
+                `Max |Displacement| = ${Math.abs(maxDisp).toExponential(4)} at x = ${maxPos.toFixed(2)}`;
+            
+            // Plot the solution
+            plotDisplacement(L, c1, c2);
+        }
+        
+        function plotDisplacement(L, c1, c2) {
+            const canvas = document.getElementById('displacementPlot');
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, width, height);
+            
+            // Calculate displacement values
+            const points = [];
+            const numPoints = 200;
+            let minU = 0, maxU = 0;
+            
+            for (let i = 0; i <= numPoints; i++) {
+                const x = (i / numPoints) * L;
+                const u = c1 * Math.pow(x - L, 2) + c2 * Math.pow(x - L, 4);
+                points.push({x, u});
+                minU = Math.min(minU, u);
+                maxU = Math.max(maxU, u);
+            }
+            
+            // Add some padding to the range
+            const uRange = maxU - minU;
+            if (uRange > 0) {
+                minU -= uRange * 0.1;
+                maxU += uRange * 0.1;
+            } else {
+                minU = -1;
+                maxU = 1;
+            }
+            
+            // Draw axes
+            ctx.strokeStyle = '#2d3748';
+            ctx.lineWidth = 2;
+            
+            // X-axis
+            ctx.beginPath();
+            ctx.moveTo(50, height - 50);
+            ctx.lineTo(width - 20, height - 50);
+            ctx.stroke();
+            
+            // Y-axis
+            ctx.beginPath();
+            ctx.moveTo(50, 20);
+            ctx.lineTo(50, height - 50);
+            ctx.stroke();
+            
+            // Plot the displacement curve
+            ctx.strokeStyle = '#667eea';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            
+            for (let i = 0; i < points.length; i++) {
+                const screenX = 50 + (points[i].x / L) * (width - 70);
+                const screenY = height - 50 - ((points[i].u - minU) / (maxU - minU)) * (height - 70);
+                
+                if (i === 0) {
+                    ctx.moveTo(screenX, screenY);
+                } else {
+                    ctx.lineTo(screenX, screenY);
+                }
+            }
+            ctx.stroke();
+            
+            // Add labels
+            ctx.fillStyle = '#2d3748';
+            ctx.font = '14px Arial';
+            ctx.fillText('x', width - 15, height - 30);
+            ctx.fillText('u(x)', 15, 35);
+            ctx.fillText('0', 35, height - 30);
+            ctx.fillText(L.toFixed(1), width - 70, height - 30);
+            
+            // Add boundary condition indicator
+            ctx.fillStyle = '#f56565';
+            ctx.beginPath();
+            ctx.arc(width - 20, height - 50, 5, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.fillStyle = '#2d3748';
+            ctx.font = '12px Arial';
+            ctx.fillText('Fixed', width - 50, height - 60);
+            
+            // Add force indicator
+            ctx.strokeStyle = '#f56565';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(50, height - 80);
+            ctx.lineTo(50, height - 50);
+            ctx.stroke();
+            ctx.fillText('P', 40, height - 85);
+        }
+    </script>
+</body>
+</html>
